@@ -1,9 +1,9 @@
 # Build output (assembled in CI, deployed to Pages)
-public/
 site/
 
-# Checked-out source during local builds
-fiberpath-src/
+# Imported component docs (pulled in at build time, not committed)
+docs/fiberpath/
+components/
 
 # Python
 .venv/

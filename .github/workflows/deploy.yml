@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
-  # Pick up docs changes in fiberpath/fiberpath (no cross-repo push trigger yet).
+  # Pick up docs changes in component repos (no cross-repo push trigger yet).
   schedule:
     - cron: "0 6 * * *"
 
@@ -25,40 +25,42 @@ jobs:
       - name: Checkout site (this repo)
         uses: actions/checkout@v7
 
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install site dependencies
+        run: pip install -r requirements.txt
+
+      # --- Import component docs ---------------------------------------------
+      # Each component repo contributes only its docs/ markdown; this site owns
+      # all config. To add a repo: check it out and copy its docs into
+      # docs/<section>/ (its .pages files travel with it and drive the nav).
+
       - name: Checkout fiberpath/fiberpath
         uses: actions/checkout@v7
         with:
           repository: fiberpath/fiberpath
-          path: fiberpath-src
+          path: components/fiberpath
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.11"
-
-      - name: Set up uv
-        uses: astral-sh/setup-uv@v8.2.0
-        with:
-          enable-cache: true
-          cache-dependency-glob: "fiberpath-src/pyproject.toml"
-
-      - name: Assemble site root
+      - name: Import fiberpath docs
         run: |
-          mkdir -p public
-          cp index.html public/
+          dest="docs/fiberpath"
+          rm -rf "$dest" && mkdir -p "$dest"
+          cp -R components/fiberpath/docs/. "$dest/"
+          # GUI docs live beside the GUI code; fold them in under gui/
+          mkdir -p "$dest/gui"
+          cp -R components/fiberpath/fiberpath_gui/docs/. "$dest/gui/"
+      # -----------------------------------------------------------------------
 
-      - name: Build FiberPath docs into /fiberpath
-        working-directory: fiberpath-src
-        run: |
-          uv venv
-          uv pip install ".[docs]"
-          uv run python scripts/sync_gui_docs.py
-          uv run mkdocs build --strict --site-dir "$GITHUB_WORKSPACE/public/fiberpath"
+      - name: Build site
+        run: mkdocs build --strict
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5
         with:
-          path: public
+          path: site
 
   deploy:
     name: Deploy to GitHub Pages
