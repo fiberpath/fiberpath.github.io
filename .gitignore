@@ -1,0 +1,10 @@
+# Build output (assembled in CI, deployed to Pages)
+public/
+site/
+
+# Checked-out source during local builds
+fiberpath-src/
+
+# Python
+.venv/
+__pycache__/

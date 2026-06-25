@@ -1,0 +1,73 @@
+name: Deploy site
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  # Pick up docs changes in fiberpath/fiberpath (no cross-repo push trigger yet).
+  schedule:
+    - cron: "0 6 * * *"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build site
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout site (this repo)
+        uses: actions/checkout@v4
+
+      - name: Checkout fiberpath/fiberpath
+        uses: actions/checkout@v4
+        with:
+          repository: fiberpath/fiberpath
+          path: fiberpath-src
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v8.2.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: "fiberpath-src/pyproject.toml"
+
+      - name: Assemble site root
+        run: |
+          mkdir -p public
+          cp index.html public/
+
+      - name: Build FiberPath docs into /fiberpath
+        working-directory: fiberpath-src
+        run: |
+          uv venv
+          uv pip install ".[docs]"
+          uv run python scripts/sync_gui_docs.py
+          uv run mkdocs build --strict --site-dir "$GITHUB_WORKSPACE/public/fiberpath"
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
