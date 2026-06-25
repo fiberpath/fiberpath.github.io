@@ -1,6 +1,6 @@
 site_name: FiberPath
 site_description: "FiberPath — an open, machine-agnostic filament-winding path planner"
-site_url: https://fiberpath.github.io/
+site_url: https://fiberpath.org/
 repo_url: https://github.com/fiberpath
 repo_name: fiberpath
 docs_dir: docs

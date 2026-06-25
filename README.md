@@ -14,4 +14,4 @@ code) and validated there on every PR; this repo owns assembly and publishing.
 The build runs on push to `main`, on a daily schedule (to pick up doc changes in
 `fiberpath/fiberpath`), and on manual dispatch.
 
-Live at <https://fiberpath.github.io>.
+Live at <https://fiberpath.org>.
