@@ -17,6 +17,8 @@ edit_uri: ""
 
 theme:
   name: material
+  logo: assets/logo.svg
+  favicon: assets/favicon.ico
   features:
     - navigation.tracking
     - navigation.sections
