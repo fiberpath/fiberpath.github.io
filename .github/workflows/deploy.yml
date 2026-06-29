@@ -57,6 +57,19 @@ jobs:
       - name: Build site
         run: mkdocs build --strict
 
+      # Publish the canonical .wind JSON Schema at its $id path. Sourced live from
+      # fiberpath/fiberpath's generated artifact (checked out above) — no vendored
+      # copy to drift. Done post-build so mkdocs --strict never processes it; the
+      # $id is major-only, so every additive 1.x schema serves from /schemas/wind/1/.
+      - name: Publish .wind JSON Schema ($id)
+        run: |
+          mkdir -p site/schemas/wind/1
+          cp components/fiberpath/fiberpath_gui/schemas/wind-schema.json \
+            site/schemas/wind/1/wind.schema.json
+          # Fail loudly if the published $id doesn't match its serving URL.
+          grep -q '"https://fiberpath.org/schemas/wind/1/wind.schema.json"' \
+            site/schemas/wind/1/wind.schema.json
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5
         with:
